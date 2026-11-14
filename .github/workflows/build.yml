@@ -9,8 +9,9 @@ on:
 jobs:
   macos:
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-14, macos-13] # macos-14 = Apple Silicon (arm64), macos-13 = Intel (x86_64)
+        os: [macos-15, macos-13] # macos-15 = Apple Silicon (arm64), macos-13 = Intel (x86_64)
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +45,7 @@ jobs:
   # 验证真实 Mach-O 二进制的模板解析与上下文签名命中情况。
   verify-real-agy:
     if: github.event_name == 'workflow_dispatch'
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
