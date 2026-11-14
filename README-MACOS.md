@@ -48,7 +48,11 @@ cd ~/agy-tool
    这是修改任何已签名 Mac 应用的固有效果，不是本工具的 bug。
 3. **自动更新会覆盖补丁**。agy / Antigravity 更新后二进制恢复原版，
    重新运行本工具即可；`--status` 可确认当前状态。
-4. **验证状态**：Mach-O/Fat 解析与补丁往返已通过合成二进制单元测试，
+4. **指针格式假设待真机确认**。Mach-O 解析假设 embed.FS 条目里存的是
+   首选基址下的绝对 VA（Go 内部链接器的经典 rebase 模型，与 PE 版假设一致）。
+   若新版 agy 改用 chained fixups 等指针编码，`--status` 会报解析失败而非
+   乱打补丁——先跑 `--status` 确认能识别出模板槽位再动手。
+5. **验证状态**：Mach-O/Fat 解析与补丁往返已通过合成二进制单元测试，
    darwin 目标交叉 `cargo check` 通过；GitHub Actions 提供 macos-14（arm64）
    与 macos-13（Intel）真实构建+测试，并有可选 job 在 runner 上装官方 agy
    跑 `--status` 验证真实二进制。**真机（真实 Antigravity 安装）端到端验证

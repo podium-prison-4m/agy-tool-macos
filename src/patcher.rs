@@ -12,6 +12,7 @@ use std::time::Duration;
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
 /// Windows 下隐藏子进程控制台窗口；其他平台为空操作。
+#[allow(dead_code)]
 pub fn apply_no_window(cmd: &mut Command) -> &mut Command {
     #[cfg(target_os = "windows")]
     {
@@ -21,6 +22,7 @@ pub fn apply_no_window(cmd: &mut Command) -> &mut Command {
 }
 
 /// 当前平台的可执行文件名后缀（Windows 为 ".exe"，macOS/Unix 为空）
+#[allow(dead_code)]
 pub fn exe_suffix() -> &'static str {
     if cfg!(target_os = "windows") { ".exe" } else { "" }
 }
@@ -1712,7 +1714,7 @@ mod macho_tests {
         let files: [(&str, &str); 3] = [
             ("guidelines.tmpl", "GUIDE-CONTENT"),
             ("identity.tmpl", "IDENTITY-CONTENT"),
-            ("artifacts.tmpl", "ART-CONTENT"),
+            ("artifacts.tmpl", "ART-CONTENT-LONG"),
         ];
         // names @1000.., data @2000.., entries @3000 (identity 居中)
         let mut name_off = 1000usize;
