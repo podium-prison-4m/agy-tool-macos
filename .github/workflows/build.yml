@@ -1,0 +1,60 @@
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [macos-port]
+  pull_request:
+
+jobs:
+  macos:
+    strategy:
+      matrix:
+        os: [macos-14, macos-13] # macos-14 = Apple Silicon (arm64), macos-13 = Intel (x86_64)
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build (release)
+        run: cargo build --release
+      - name: Test
+        run: cargo test --release
+      - name: Package
+        run: |
+          mkdir -p dist/agy-tool
+          cp target/release/agy-tool dist/agy-tool/
+          cp -r presets dist/agy-tool/
+          cp README-MACOS.md dist/agy-tool/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agy-tool-${{ matrix.os }}
+          path: dist/agy-tool
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build (release)
+        run: cargo build --release
+      - name: Test
+        run: cargo test --release
+
+  # 可选（手动触发时）：在 runner 上装官方 agy CLI 并跑 --status，
+  # 验证真实 Mach-O 二进制的模板解析与上下文签名命中情况。
+  verify-real-agy:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build (release)
+        run: cargo build --release
+      - name: Install official agy CLI
+        run: curl -fsSL https://antigravity.google/cli/install.sh | bash
+      - name: Status against real binary
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          agy --version || true
+          mkdir -p /tmp/agytool-run && cp target/release/agy-tool /tmp/agytool-run/ && cp -r presets /tmp/agytool-run/
+          /tmp/agytool-run/agy-tool --status

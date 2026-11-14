@@ -5,7 +5,7 @@ use crate::injector::{
 };
 use crate::patcher::{
     check_running_processes, display_slot_name, execute_patch_operations, inspect_all_binaries,
-    kill_language_servers, local_appdata_dir, BinaryInspection, ContextMode, ProcessStatus,
+    kill_language_servers, BinaryInspection, ContextMode, ProcessStatus,
     PromptPatch, TemplateSlot,
 };
 use crate::presets::{discover_presets, match_binary_to_preset, PromptPreset};
@@ -82,11 +82,7 @@ impl AgyToolApp {
 
         let (tx, rx) = mpsc::channel();
         let placeholder_hud = HudInspection {
-            asar_path: local_appdata_dir()
-                .join("Programs")
-                .join("antigravity")
-                .join("resources")
-                .join("app.asar"),
+            asar_path: crate::injector::antigravity_asar_path(),
             bak_path: PathBuf::new(),
             asar_exists: true,
             bak_exists: false,

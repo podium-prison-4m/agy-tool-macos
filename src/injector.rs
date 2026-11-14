@@ -1,5 +1,5 @@
 use crate::asar::{repack_asar_in_memory, AsarArchive};
-use crate::patcher::{app_backup_dir, local_appdata_dir, ContextMode};
+use crate::patcher::{app_backup_dir, local_appdata_dir, resign_after_patch, user_home_dir, ContextMode};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -53,11 +53,31 @@ pub struct HudInspection {
 }
 
 pub fn antigravity_asar_path() -> PathBuf {
-    local_appdata_dir()
-        .join("Programs")
-        .join("antigravity")
-        .join("resources")
-        .join("app.asar")
+    #[cfg(target_os = "windows")]
+    {
+        return local_appdata_dir()
+            .join("Programs")
+            .join("antigravity")
+            .join("resources")
+            .join("app.asar");
+    }
+    #[cfg(target_os = "macos")]
+    {
+        // 桌面端 App 2.x: /Applications/Antigravity.app/Contents/Resources/app.asar
+        let sys = PathBuf::from("/Applications/Antigravity.app/Contents/Resources/app.asar");
+        if sys.exists() {
+            return sys;
+        }
+        let user = user_home_dir().join("Applications/Antigravity.app/Contents/Resources/app.asar");
+        if user.exists() {
+            return user;
+        }
+        return sys;
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    {
+        return local_appdata_dir().join("app.asar");
+    }
 }
 
 pub fn asar_backup_path() -> PathBuf {
@@ -65,13 +85,26 @@ pub fn asar_backup_path() -> PathBuf {
 }
 
 pub fn roam_appdata_dir() -> PathBuf {
-    if let Ok(p) = std::env::var("APPDATA") {
-        return PathBuf::from(p);
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(p) = std::env::var("APPDATA") {
+            return PathBuf::from(p);
+        }
+        if let Ok(home) = std::env::var("USERPROFILE") {
+            return PathBuf::from(home).join("AppData").join("Roaming");
+        }
+        return PathBuf::from("C:/Users/Administrator/AppData/Roaming");
     }
-    if let Ok(home) = std::env::var("USERPROFILE") {
-        return PathBuf::from(home).join("AppData").join("Roaming");
+    #[cfg(target_os = "macos")]
+    {
+        // Electron userData: ~/Library/Application Support/<AppName>
+        // detect_active_cdp_port 会在其下拼 "Antigravity/DevToolsActivePort"
+        return user_home_dir().join("Library").join("Application Support");
     }
-    PathBuf::from("C:/Users/Administrator/AppData/Roaming")
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    {
+        return user_home_dir();
+    }
 }
 
 pub fn detect_active_cdp_port() -> Option<u16> {
@@ -372,6 +405,8 @@ pub fn install_composer_hud() -> Result<Vec<String>, String> {
                 "✔ 已成功写入持久化包: {} (已剥离旧版顶栏插件并注入底部 HUD)",
                 asar_path.display()
             ));
+            // macOS: app.asar 属于 bundle 资源封印，写入后需重签 .app
+            logs.extend(resign_after_patch(&asar_path));
         }
         Err(e) => {
             logs.push(format!(
@@ -410,7 +445,11 @@ pub fn restore_stock_asar() -> Result<Vec<String>, String> {
     let clean_raw = ensure_clean_asar_backup(&asar_path, &bak_path)?;
 
     match write_asar_with_rename_fallback(&asar_path, &clean_raw) {
-        Ok(_) => logs.push(format!("✔ 已还原官方纯净 app.asar: {}", asar_path.display())),
+        Ok(_) => {
+            logs.push(format!("✔ 已还原官方纯净 app.asar: {}", asar_path.display()));
+            // macOS: 还原同样改变了资源封印，需重新 ad-hoc 签名以便正常启动
+            logs.extend(resign_after_patch(&asar_path));
+        }
         Err(e) => logs.push(format!(
             "⚠ app.asar 被进程锁定暂时无法覆写磁盘 ({})，请关闭客户端后重试磁盘还原",
             e

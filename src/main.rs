@@ -71,15 +71,15 @@ fn print_help() {
 AGY-TOOL v1.0 — Antigravity (Gemini 4 Argon) 提示词精简、百万上下文解锁与底部 HUD 工具箱
 
 用法:
-  agy-tool.exe                                  # 启动独立轻量高密度 GUI 面板 (默认)
-  agy-tool.exe --status | --inspect             # 只读扫描本机二进制与 HUD 状态
-  agy-tool.exe --prompt <preset|restore>        # 应用 presets/ 下的预设目录，或 restore 还原官方原版
-  agy-tool.exe --context <512k|900k|restore>    # 单独切换上下文窗口门禁档位
-  agy-tool.exe --inject-hud                     # 注入底部 Request Review 左侧 HUD (自动清理旧版顶栏)
-  agy-tool.exe --hot-hud                        # 仅通过 CDP 向运行中窗口实时热注入底部 HUD
-  agy-tool.exe --restore-hud                    # 卸载 HUD 并还原官方纯净 app.asar
-  agy-tool.exe --full                           # 解锁 900K 上下文 + 底部 HUD (可配合 --prompt)
-  agy-tool.exe --restore                        # 一键全部恢复官方默认状态"
+  agy-tool                                  # 启动独立轻量高密度 GUI 面板 (默认)
+  agy-tool --status | --inspect             # 只读扫描本机二进制与 HUD 状态
+  agy-tool --prompt <preset|restore>        # 应用 presets/ 下的预设目录，或 restore 还原官方原版
+  agy-tool --context <512k|900k|restore>    # 单独切换上下文窗口门禁档位
+  agy-tool --inject-hud                     # 注入底部 Request Review 左侧 HUD (自动清理旧版顶栏)
+  agy-tool --hot-hud                        # 仅通过 CDP 向运行中窗口实时热注入底部 HUD
+  agy-tool --restore-hud                    # 卸载 HUD 并还原官方纯净 app.asar
+  agy-tool --full                           # 解锁 900K 上下文 + 底部 HUD (可配合 --prompt)
+  agy-tool --restore                        # 一键全部恢复官方默认状态"
     );
 }
 
