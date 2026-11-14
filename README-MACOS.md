@@ -35,6 +35,28 @@ cd ~/agy-tool
 首次修改会在可执行文件同级 `backup/` 下保存原版备份；请把 `agy-tool` 放在
 可写目录（如 `~/agy-tool`），不要放进 `/Applications`。
 
+## Apple Silicon + 只装了 CLI 版的推荐用法
+
+只改 `~/.local/bin/agy` 一个文件，不用 `--full`（那是给桌面版带 HUD 的）：
+
+```bash
+./agy-tool --status                    # 先确认识别出模板槽位（约 13 个）
+./agy-tool --prompt tier4-guardrails   # 提示词精简：arm64 可用
+./agy-tool --restore                   # 还原
+```
+
+上下文解锁在 arm64 上不要指望工具的字节签名（x86_64 专用），CLI 版有官方
+替代参数（agy 1.5.0+ 内置，只对 CLI TUI 生效）：
+
+```bash
+echo 'export AGY_CLI_AUTO_COMPACT_OVERRIDE=840000' >> ~/.zshrc
+```
+
+取值 840000（推荐，留余量）或百分比形式 `80%`；该变量优先级高于
+settings.json 里的 `contextWindow`（后者单开无效）。注意有社区报告称该
+参数只对 Argon 模型生效。agy 自动更新后提示词补丁会被覆盖，重跑一遍
+`--prompt` 即可。
+
 ## 已知限制与注意事项（重要）
 
 1. **上下文解锁在 Apple Silicon 上暂未命中**。门禁签名是 x86_64 指令字节，
