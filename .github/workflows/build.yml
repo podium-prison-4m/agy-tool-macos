@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, macos-13] # macos-15 = Apple Silicon (arm64), macos-13 = Intel (x86_64)
+        os: [macos-15] # Apple Silicon (arm64)；Intel 版在同一 runner 上交叉编译（macos-13 队列已废弃）
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +30,18 @@ jobs:
         with:
           name: agy-tool-${{ matrix.os }}
           path: dist/agy-tool
+      - name: Build Intel (x86_64) cross
+        run: |
+          rustup target add x86_64-apple-darwin
+          cargo build --release --target x86_64-apple-darwin
+          mkdir -p dist-x64/agy-tool
+          cp target/x86_64-apple-darwin/release/agy-tool dist-x64/agy-tool/
+          cp -r presets dist-x64/agy-tool/
+          cp README-MACOS.md dist-x64/agy-tool/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agy-tool-macos-x64
+          path: dist-x64/agy-tool
 
   windows:
     runs-on: windows-latest
